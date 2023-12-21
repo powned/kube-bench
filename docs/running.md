@@ -177,3 +177,45 @@ To run the benchmark as a job in your ACK cluster apply the included `job-ack.ya
 ```
 kubectl apply -f job-ack.yaml
 ```
+
+### Running in a VMware TKGI cluster
+
+| CIS Benchmark | Targets                                    |
+|---------------|--------------------------------------------|
+| tkgi-1.2.53   | master, etcd, controlplane, node, policies |
+
+kube-bench includes benchmarks for VMware tkgi platform.
+To run this you will need to specify `--benchmark tkgi-1.2.53` when you run the `kube-bench` command.
+
+To run the benchmark as a job in your VMware tkgi cluster apply the included `job-tkgi.yaml`.
+
+```
+kubectl apply -f job-tkgi.yaml
+```
+
+### Running in a Rancher RKE cluster
+
+| CIS Benchmark | Targets                                    |
+|---------------|--------------------------------------------|
+| rke-cis-1.7   | master, etcd, controlplane, node, policies |
+
+kube-bench includes benchmarks for Rancher RKE platform.
+To run this you will need to specify `--benchmark rke-cis-1.7` when you run the `kube-bench` command.
+
+### Running in a Rancher RKE2 cluster
+
+| CIS Benchmark | Targets                                    |
+|---------------|--------------------------------------------|
+| rke2-cis-1.7  | master, etcd, controlplane, node, policies |
+
+kube-bench includes benchmarks for Rancher RKE2 platform.
+To run this you will need to specify `--benchmark rke2-cis-1.7` when you run the `kube-bench` command.
+
+### Running in a Rancher K3s cluster
+
+| CIS Benchmark | Targets                                    |
+|---------------|--------------------------------------------|
+| k3s-cis-1.7   | master, etcd, controlplane, node, policies |
+
+kube-bench includes benchmarks for Rancher K3S platform.
+To run this you will need to specify `--benchmark k3s-cis-1.7` when you run the `kube-bench` command.

@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -240,6 +240,8 @@ func TestMapToCISVersion(t *testing.T) {
 		{kubeVersion: "1.22", succeed: true, exp: "cis-1.23"},
 		{kubeVersion: "1.23", succeed: true, exp: "cis-1.23"},
 		{kubeVersion: "1.24", succeed: true, exp: "cis-1.24"},
+		{kubeVersion: "1.25", succeed: true, exp: "cis-1.7"},
+		{kubeVersion: "1.26", succeed: true, exp: "cis-1.8"},
 		{kubeVersion: "gke-1.2.0", succeed: true, exp: "gke-1.2.0"},
 		{kubeVersion: "ocp-3.10", succeed: true, exp: "rh-0.7"},
 		{kubeVersion: "ocp-3.11", succeed: true, exp: "rh-0.7"},
@@ -446,6 +448,12 @@ func TestValidTargets(t *testing.T) {
 		{
 			name:      "eks-1.1.0 valid",
 			benchmark: "eks-1.1.0",
+			targets:   []string{"node", "policies", "controlplane", "managedservices"},
+			expected:  true,
+		},
+		{
+			name:      "eks-1.2.0 valid",
+			benchmark: "eks-1.2.0",
 			targets:   []string{"node", "policies", "controlplane", "managedservices"},
 			expected:  true,
 		},
@@ -673,7 +681,7 @@ func TestPrintSummary(t *testing.T) {
 	os.Stdout = w
 	printSummary(resultTotals, "totals")
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	assert.Contains(t, string(out), "49 checks PASS\n12 checks FAIL\n14 checks WARN\n0 checks INFO\n\n")
@@ -692,7 +700,7 @@ func TestPrettyPrintNoSummary(t *testing.T) {
 	noSummary = true
 	prettyPrint(controlsCollection[0], resultTotals)
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	assert.NotContains(t, string(out), "49 checks PASS")
@@ -711,7 +719,7 @@ func TestPrettyPrintSummary(t *testing.T) {
 	noSummary = false
 	prettyPrint(controlsCollection[0], resultTotals)
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	assert.Contains(t, string(out), "49 checks PASS")
@@ -729,7 +737,7 @@ func TestWriteStdoutOutputNoTotal(t *testing.T) {
 	noTotals = true
 	writeStdoutOutput(controlsCollection)
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	assert.NotContains(t, string(out), "49 checks PASS")
@@ -749,7 +757,7 @@ func TestWriteStdoutOutputTotal(t *testing.T) {
 	noTotals = false
 	writeStdoutOutput(controlsCollection)
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 
 	os.Stdout = rescueStdout
 
@@ -759,7 +767,7 @@ func TestWriteStdoutOutputTotal(t *testing.T) {
 func parseControlsJsonFile(filepath string) ([]*check.Controls, error) {
 	var result []*check.Controls
 
-	d, err := ioutil.ReadFile(filepath)
+	d, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +782,7 @@ func parseControlsJsonFile(filepath string) ([]*check.Controls, error) {
 func parseResultJsonFile(filepath string) (JsonOutputFormat, error) {
 	var result JsonOutputFormat
 
-	d, err := ioutil.ReadFile(filepath)
+	d, err := os.ReadFile(filepath)
 	if err != nil {
 		return result, err
 	}
@@ -789,7 +797,7 @@ func parseResultJsonFile(filepath string) (JsonOutputFormat, error) {
 func parseResultNoTotalsJsonFile(filepath string) ([]*check.Controls, error) {
 	var result []*check.Controls
 
-	d, err := ioutil.ReadFile(filepath)
+	d, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -814,7 +822,7 @@ type restoreFn func()
 
 func fakeExecutableInPath(execFile, execCode string) (restoreFn, error) {
 	pathenv := os.Getenv("PATH")
-	tmp, err := ioutil.TempDir("", "TestfakeExecutableInPath")
+	tmp, err := os.MkdirTemp("", "TestfakeExecutableInPath")
 	if err != nil {
 		return nil, err
 	}
@@ -825,7 +833,7 @@ func fakeExecutableInPath(execFile, execCode string) (restoreFn, error) {
 	}
 
 	if len(execCode) > 0 {
-		ioutil.WriteFile(filepath.Join(tmp, execFile), []byte(execCode), 0700)
+		os.WriteFile(filepath.Join(tmp, execFile), []byte(execCode), 0700)
 	} else {
 		f, err := os.OpenFile(execFile, os.O_CREATE|os.O_EXCL, 0700)
 		if err != nil {
